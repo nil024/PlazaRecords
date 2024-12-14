@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .form-label, .btn, h1 {
+            font-size: 0.9rem;
+        }
+        .form-control {
+            font-size: 0.8rem;
+            padding: 0.3rem;
+        }
+        .container {
+            max-width: 400px;
+        }
+        .modal-body {
+            text-align: center;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #ccc;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-3">
+        <h1 class="text-center">Login</h1>
+        <form id="loginForm">
+            <div class="mb-2">
+                <label for="usernameOrEmail" class="form-label">Username or Email</label>
+                <input type="text" class="form-control form-control-sm" id="usernameOrEmail" name="usernameOrEmail" required placeholder="Enter your username or email">
+            </div>
+            <div class="mb-2">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control form-control-sm" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm w-100">Login</button>
+        </form>
+
+        <!-- Login Failure Modal -->
+        <div class="modal fade" id="loginFailureModal" tabindex="-1" aria-labelledby="loginFailureModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <p>Invalid credentials. Please try again!</p>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+            event.preventDefault();  // Prevent the form from submitting the traditional way
+
+            // Collect form data and create a loginData object
+            const formData = new FormData(document.getElementById("loginForm"));
+            const loginData = Object.fromEntries(formData.entries());  // Converts form data into a key-value pair object
+
+            console.log("Sending login data:", loginData);  // Log the login data to check
+
+            try {
+                // Call the login API
+                const response = await fetch('/login/user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },  // Send as JSON
+                    body: JSON.stringify(loginData),  // Send the login data in the request body
+                });
+
+                if (response.ok) {
+                    // Redirect to the home/dashboard page upon successful login
+                    window.location.href = '/plaza-list';  // Change this URL to the appropriate destination
+                } else {
+                    // Show the login failure modal if the credentials are incorrect
+                    const loginFailureModal = new bootstrap.Modal(document.getElementById('loginFailureModal'));
+                    loginFailureModal.show();
+                }
+            } catch (error) {
+                console.error("Error during login fetch:", error);  // Catch any error that might occur
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

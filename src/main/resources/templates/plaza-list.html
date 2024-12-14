@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Plaza List</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .container {
+            max-width: 800px;
+        }
+        h1 {
+            font-size: 2rem; /* Increased font size */
+            display: inline-block;
+            font-weight: bold; /* Optional: Makes the heading bold */
+        }
+        .add-plaza-btn {
+            float: right;
+            margin-top: -0.5rem;
+        }
+        table {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Plaza List</h1>
+            <button class="btn btn-primary btn-sm add-plaza-btn" onclick="redirectToAddPlaza()">Add New Plaza</button>
+        </div>
+        <table class="table table-bordered table-hover mt-3">
+            <thead>
+                <tr>
+                    <th>Sr. ID</th>
+                    <th>Plaza ID</th>
+                    <th>Plaza Name</th>
+                    <th>Org ID</th>
+                    <th>Geo Code</th>
+                </tr>
+            </thead>
+            <tbody id="plazaTableBody">
+                <!-- Rows will be populated dynamically -->
+            </tbody>
+        </table>
+        <div id="noDataMessage" class="text-center text-muted" style="display:none;">
+            No plazas found.
+        </div>
+    </div>
+
+    <script>
+        async function loadPlazaData() {
+            const response = await fetch('/plaza-list-data'); // Fetch data from the new API endpoint
+            if (response.ok) {
+                const plazas = await response.json();
+                const tableBody = document.getElementById('plazaTableBody');
+                const noDataMessage = document.getElementById('noDataMessage');
+
+                if (plazas.length > 0) {
+                    noDataMessage.style.display = 'none'; // Hide "No Data" message
+                    plazas.forEach(plaza => {
+                        const row = document.createElement('tr');
+
+                        row.innerHTML = `
+                            <td>${plaza.sr_id}</td>
+                            <td>${plaza.plaza_id}</td>
+                            <td>${plaza.plaza_name}</td>
+                            <td>${plaza.org_id}</td>
+                            <td>${plaza.geoCode}</td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    noDataMessage.style.display = 'block'; // Show "No Data" message
+                }
+            } else {
+                alert('Failed to fetch plaza data. Please try again later.');
+            }
+        }
+
+        function redirectToAddPlaza() {
+            window.location.href = '/add-plaza'; // Redirect to add plaza page
+        }
+
+        // Load plaza data when the page is loaded
+        document.addEventListener('DOMContentLoaded', loadPlazaData);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

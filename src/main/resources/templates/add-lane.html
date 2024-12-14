@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Lane</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .form-label, .btn, h1 {
+            font-size: 0.9rem;
+        }
+        .form-control {
+            font-size: 0.8rem;
+            padding: 0.3rem;
+        }
+        .container {
+            max-width: 400px;
+        }
+        .modal-body .row {
+            margin-bottom: 1rem;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #ccc;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-3">
+        <h1 class="text-center">Add Lane</h1>
+        <form action="#" th:onsubmit="submitLaneForm(event)" method="POST" id="addLaneForm">
+            <div class="mb-2">
+                <label for="plaza_id" class="form-label">Plaza ID</label>
+                <input type="text" class="form-control form-control-sm" id="plaza_id" name="plaza_id" th:value="${plaza_id}" readonly placeholder="Plaza ID (Readonly)">
+            </div>
+            <div class="mb-2">
+                <label for="lane_id" class="form-label">Lane ID</label>
+                <input type="number" class="form-control form-control-sm" id="lane_id" name="lane_id" min="1" required placeholder="Enter Lane ID">
+                <span id="laneIdMessage" class="text-danger" style="display:none;">Please enter a valid Lane ID (greater than 0).</span>
+            </div>
+            <div class="mb-2">
+                <label for="direction" class="form-label">Direction</label>
+                <input type="text" class="form-control form-control-sm" id="direction" name="direction" required placeholder="Enter Direction">
+            </div>
+            <div class="mb-2">
+                <label for="reader_id" class="form-label">Reader ID</label>
+                <input type="text" class="form-control form-control-sm" id="reader_id" name="reader_id" required placeholder="Enter Reader ID">
+            </div>
+            <div class="mb-2">
+                <label for="status" class="form-label">Status</label>
+                <input type="text" class="form-control form-control-sm" id="status" name="status" required placeholder="Enter Status">
+            </div>
+            <div class="mb-2">
+                <label for="mode" class="form-label">Mode</label>
+                <input type="text" class="form-control form-control-sm" id="mode" name="mode" required placeholder="Enter Mode">
+            </div>
+            <div class="mb-2">
+                <label for="type" class="form-label">Type</label>
+                <input type="text" class="form-control form-control-sm" id="type" name="type" required placeholder="Enter Type">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm w-100">Add Lane</button>
+        </form>
+
+        <!-- Popup Modal -->
+        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <!-- First Row: Lane added message + Add More Lane Button -->
+                        <div class="row">
+                            <div class="col-6">
+                                <span id="laneMessage">Lane added successfully! Lane ID: 1</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <button type="button" class="btn btn-secondary btn-sm" id="addMoreLaneButton">Add More Lane</button>
+                            </div>
+                        </div>
+
+                        <!-- Separator Line (Between the rows, not under the buttons) -->
+                        <hr>
+
+                        <!-- Second Row: Add New Plaza and Go to Plaza List buttons -->
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-secondary btn-sm" id="addNewPlazaButton">Add New Plaza</button>
+                            </div>
+                            <div class="col-6 text-end">
+                                <button type="button" class="btn btn-primary btn-sm" id="goToPlazaListButton">Go to Plaza List</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- Just leave the buttons for actions, remove close (X) button -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function submitLaneForm(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById("addLaneForm"));
+            const laneData = Object.fromEntries(formData.entries());
+            const plazaId = document.getElementById("plaza_id").value;
+
+            const response = await fetch('/lane/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(laneData),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                document.getElementById('laneMessage').innerHTML = `Lane added successfully! Lane ID: ${result.lane_id}`;
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+
+                // Set up the button actions
+                document.getElementById("addMoreLaneButton").onclick = function () {
+                    window.location.href = `/add-lane?plaza_id=${plazaId}`;
+                };
+
+                document.getElementById("addNewPlazaButton").onclick = function () {
+                    window.location.href = `/add-plaza`; // URL for adding a new plaza
+                };
+
+                document.getElementById("goToPlazaListButton").onclick = function () {
+                    window.location.href = `/plaza-list`; // URL for the plaza list
+                };
+            } else {
+                const errorMessage = await response.text();
+                alert(`Error: ${errorMessage}`);
+            }
+        }
+
+        // Additional JavaScript validation for Lane ID
+        document.getElementById("addLaneForm").addEventListener("submit", function(event) {
+            const laneIdInput = document.getElementById("lane_id");
+            const laneIdMessage = document.getElementById("laneIdMessage");
+
+            if (laneIdInput.value < 1) {
+                event.preventDefault();
+                laneIdMessage.style.display = 'inline'; // Show the error message
+                laneIdInput.focus(); // Optionally, focus the input field
+            } else {
+                laneIdMessage.style.display = 'none'; // Hide the error message if Lane ID is valid
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
